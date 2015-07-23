@@ -42,17 +42,24 @@ public class LocationGrid {
 		return new double[] { latitude, longitude };
 	}
 
-	public static long toGridNumber(int pixelX, int pixelY, int levelOfDetail) {
-		long mapSize = gridSize(levelOfDetail);
-		long n = pixelX + pixelY * mapSize;
+	public static int toGridNumber(int pixelX, int pixelY, int levelOfDetail) {
+		int mapSize = gridSize(levelOfDetail);
+		int n = pixelX + pixelY * mapSize;
 		return n;
 	}
 
-	public static long[] toCartesianCoordinate(long n, int levelOfDetail) {
+	public static int toGridNumber(double latitude, double longitude, int levelOfDetail) {
 		int mapSize = gridSize(levelOfDetail);
-		long x = n % mapSize;
-		long y = (n - x) / mapSize;
-		return new long[] { x, y };
+		int[] pixelXY = toCartesianCoordinate(latitude, longitude, levelOfDetail);
+		int n = pixelXY[0] + pixelXY[1] * mapSize;
+		return n;
+	}
+
+	public static int[] toCartesianCoordinate(int n, int levelOfDetail) {
+		int mapSize = gridSize(levelOfDetail);
+		int x = n % mapSize;
+		int y = (n - x) / mapSize;
+		return new int[] { x, y };
 	}
 
 }

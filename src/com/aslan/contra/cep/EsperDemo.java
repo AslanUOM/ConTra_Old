@@ -1,5 +1,6 @@
 package com.aslan.contra.cep;
 
+import java.util.Calendar;
 import java.util.Date;
 
 import com.aslan.contra.model.LocationEvent;
@@ -12,21 +13,10 @@ import com.espertech.esper.client.EPServiceProviderManager;
 import com.espertech.esper.client.EPStatement;
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.UpdateListener;
+import com.espertech.esper.event.map.MapEventBean;
 
 public class EsperDemo {
 	private static final long CURRENT_TIME = System.currentTimeMillis();
-
-	public static class CEPListener implements UpdateListener {
-
-		public void update(EventBean[] newData, EventBean[] oldData) {
-			for (EventBean eb : newData) {
-				LocationEvent event = (LocationEvent) eb.getUnderlying();
-				System.out.println("Event received: " + event + "\t@: " + new Date(event.getTime()).toString());
-			}
-
-			System.out.println();
-		}
-	}
 
 	public static void main(String[] args) {
 
@@ -37,27 +27,39 @@ public class EsperDemo {
 		EPRuntime cepRT = cep.getEPRuntime();
 
 		EPAdministrator admin = cep.getEPAdministrator();
-		EPStatement pattern = admin.createPattern(
-				"every A=LocationEvent -> B=LocationEvent(geoFence=A.geoFence) where timer:within (100)");
-				// EPStatement cepStatement = admin.createEPL("select * from "
-				// + "StockTick(symbol='AAPL').win:ext_timed_batch(timeStamp, 2 second) " + "having avg(price) > 2.0");
 
-		// cepStatement.addListener(new CEPListener());
-		pattern.addListener(new UpdateListener() {
+		EPStatement smt = admin.createEPL(
+				"select beginevent.geoFence as geoFence, beginevent.time as beginTime, endevent.time as endTime from pattern ["
+						+ "beginevent=LocationEvent" + "-> middleevent=LocationEvent(geoFence=beginevent.geoFence)"
+						+ "until endevent=LocationEvent(geoFence!=beginevent.geoFence) where timer:within(10 second)]");
+
+		smt.addListener(new UpdateListener() {
 
 			@Override
 			public void update(EventBean[] newEvents, EventBean[] arg1) {
-				// for (EventBean eb : newEvents) {
-				// LocationEvent event = (LocationEvent) eb.getUnderlying();
-				// System.out.println("Event received: " + event + "\t@: " + new
-				// Date(event.getTime()).toString());
-				// }
-				//
-				// System.out.println();
-				LocationEvent spike = (LocationEvent) newEvents[0].get("A");
-				LocationEvent error = (LocationEvent) newEvents[0].get("B");
-				System.out.println("A:" + spike);
-				System.out.println("B: " + error);
+				MapEventBean bean = (MapEventBean) newEvents[0];
+
+				Integer geoFence = (Integer) bean.get("geoFence");
+				
+				Calendar start = Calendar.getInstance();
+				start.setTimeInMillis((Long) bean.get("beginTime"));
+				
+				Calendar end = Calendar.getInstance();
+				end.setTimeInMillis((Long) bean.get("endTime"));
+				
+				Calendar c = Calendar.getInstance();
+				int timeOfDay = c.get(Calendar.HOUR_OF_DAY);
+
+				if (timeOfDay >= 6 && timeOfDay <= 18) {
+					// Work
+				} else {
+					// Home
+				}
+
+				System.out.println("GEO Fence: " + geoFence);
+				System.out.println("From: " + start);
+				System.out.println("To: " + end);
+
 				System.out.println();
 			}
 		});
@@ -71,7 +73,7 @@ public class EsperDemo {
 		// generateData(cepRT, 6.87814489, 79.8577096);
 		// generateData(cepRT, 6.87813571, 79.85746346);
 		// generateData(cepRT, 6.8783003, 79.8576553);
-		// generateData(cepRT, 6.87812017, 79.857593);
+		// generateData(cepRT, 6.87812017, 75.857593);
 		// generateData(cepRT, 6.87822805, 79.85757823);
 		// generateData(cepRT, 6.87811312, 79.85744618);
 
@@ -90,7 +92,7 @@ public class EsperDemo {
 			Thread.sleep(500);
 			generateData(cepRT, 6.8783003, 79.8576553);
 			Thread.sleep(500);
-			generateData(cepRT, 6.87812017, 79.857593);
+			generateData(cepRT, 6.87812017, 75.857593);
 			Thread.sleep(500);
 			generateData(cepRT, 6.87822805, 79.85757823);
 			Thread.sleep(500);
@@ -115,7 +117,7 @@ public class EsperDemo {
 		event.setTime(CURRENT_TIME - (60000 * count--));
 		event.setUserID("U001");
 		event.setGeoFence(LocationGrid.toGridNumber(lat, lon, levelOfDetail));
-
+		System.out.println("Insert: " + event.getGeoFence());
 		cepRT.sendEvent(event);
 	}
 }

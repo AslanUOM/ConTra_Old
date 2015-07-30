@@ -1,7 +1,7 @@
 package com.aslan.contra.cep;
 
 import java.util.Calendar;
-import java.util.Date;
+import java.util.List;
 
 import com.aslan.contra.model.LocationEvent;
 import com.aslan.contra.util.LocationGrid;
@@ -29,12 +29,13 @@ public class EsperDemo {
 		EPAdministrator admin = cep.getEPAdministrator();
 
 		EPStatement smt = admin.createEPL(
-				"select beginevent.geoFence as geoFence, beginevent.time as beginTime, endevent.time as endTime from pattern ["
+				"select beginevent.geoFence as geoFence, beginevent.time as beginTime, endevent.time as endTime, middleevent[0].wifiNetworks as wifiNetworks from pattern ["
 						+ "beginevent=LocationEvent" + "-> middleevent=LocationEvent(geoFence=beginevent.geoFence)"
 						+ "until endevent=LocationEvent(geoFence!=beginevent.geoFence) where timer:within(10 second)]");
 
 		smt.addListener(new UpdateListener() {
 
+			@SuppressWarnings("unchecked")
 			@Override
 			public void update(EventBean[] newEvents, EventBean[] arg1) {
 				MapEventBean bean = (MapEventBean) newEvents[0];
@@ -46,6 +47,9 @@ public class EsperDemo {
 
 				Calendar end = Calendar.getInstance();
 				end.setTimeInMillis((Long) bean.get("endTime"));
+
+				// System.out.println(bean.get("wifiNetworks"));
+				List<String> wifiNetworks = (List<String>) bean.get("wifiNetworks");
 
 				Calendar c = Calendar.getInstance();
 				int timeOfDay = c.get(Calendar.HOUR_OF_DAY);
@@ -59,7 +63,7 @@ public class EsperDemo {
 				System.out.println("GEO Fence: " + geoFence);
 				System.out.println("From: " + start);
 				System.out.println("To: " + end);
-
+				System.out.println(wifiNetworks);
 				System.out.println();
 			}
 		});
@@ -116,6 +120,7 @@ public class EsperDemo {
 		event.setSource("gps");
 		event.setTime(CURRENT_TIME - (60000 * count--));
 		event.setUserID("U001");
+		event.addAll("UOMWireless", "CSE Smart");
 		event.setGeoFence(LocationGrid.toGridNumber(lat, lon, levelOfDetail));
 		System.out.println("Insert: " + event.getGeoFence());
 		cepRT.sendEvent(event);

@@ -1,5 +1,9 @@
 package com.aslan.contra.model;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class LocationEvent extends Event {
 	/**
 	 * Latitude of the location.
@@ -19,7 +23,7 @@ public class LocationEvent extends Event {
 	/**
 	 * Available WIFI locations at the current location.
 	 */
-	private String[] wifiNetworks;
+	private List<String> wifiNetworks;
 
 	/**
 	 * @return the latitude
@@ -69,7 +73,7 @@ public class LocationEvent extends Event {
 	/**
 	 * @return the wifiNetworks
 	 */
-	public String[] getWifiNetworks() {
+	public List<String> getWifiNetworks() {
 		return wifiNetworks;
 	}
 
@@ -77,8 +81,15 @@ public class LocationEvent extends Event {
 	 * @param wifiNetworks
 	 *            the wifiNetworks to set
 	 */
-	public void setWifiNetworks(String[] wifiNetworks) {
+	public void setWifiNetworks(List<String> wifiNetworks) {
 		this.wifiNetworks = wifiNetworks;
+	}
+
+	public void addAll(String... wifiNetworks) {
+		if (this.wifiNetworks == null) {
+			this.wifiNetworks = new ArrayList<>();
+		}
+		this.wifiNetworks.addAll(Arrays.asList(wifiNetworks));
 	}
 
 	@Override

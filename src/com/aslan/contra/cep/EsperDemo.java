@@ -40,13 +40,13 @@ public class EsperDemo {
 				MapEventBean bean = (MapEventBean) newEvents[0];
 
 				Integer geoFence = (Integer) bean.get("geoFence");
-				
+
 				Calendar start = Calendar.getInstance();
 				start.setTimeInMillis((Long) bean.get("beginTime"));
-				
+
 				Calendar end = Calendar.getInstance();
 				end.setTimeInMillis((Long) bean.get("endTime"));
-				
+
 				Calendar c = Calendar.getInstance();
 				int timeOfDay = c.get(Calendar.HOUR_OF_DAY);
 

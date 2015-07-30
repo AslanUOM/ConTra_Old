@@ -17,6 +17,11 @@ public class LocationEvent extends Event {
 	private int geoFence;
 
 	/**
+	 * Available WIFI locations at the current location.
+	 */
+	private String[] wifiNetworks;
+
+	/**
 	 * @return the latitude
 	 */
 	public double getLatitude() {
@@ -59,6 +64,21 @@ public class LocationEvent extends Event {
 	 */
 	public void setGeoFence(int geoFence) {
 		this.geoFence = geoFence;
+	}
+
+	/**
+	 * @return the wifiNetworks
+	 */
+	public String[] getWifiNetworks() {
+		return wifiNetworks;
+	}
+
+	/**
+	 * @param wifiNetworks
+	 *            the wifiNetworks to set
+	 */
+	public void setWifiNetworks(String[] wifiNetworks) {
+		this.wifiNetworks = wifiNetworks;
 	}
 
 	@Override

@@ -1,6 +1,6 @@
 package com.aslan.contra.model;
 
-public abstract class Event {
+public class Event {
 	/**
 	 * ID of the user.
 	 */

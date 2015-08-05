@@ -7,6 +7,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.aslan.contra.cep.CEPProcessor;
 import com.aslan.contra.model.SensorResponse;
 
 @Path("/sensordatareceiver")
@@ -17,6 +18,11 @@ public class SensorDataReceiverService {
 	@Produces(MediaType.TEXT_HTML)
 	public Response save(SensorResponse response) {
 		System.out.println(response);
+//		// Get the CEPProcessor
+//		CEPProcessor processor = CEPProcessor.getInstance();
+//		// Add the event to the processor
+//		processor.addEvent(response);
+//		// Return a successful response
 		return Response.status(201).entity("Accepted").build();
 	}
 }

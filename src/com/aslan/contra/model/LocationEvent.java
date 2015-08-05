@@ -2,6 +2,7 @@ package com.aslan.contra.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 public class LocationEvent extends Event {
@@ -18,7 +19,7 @@ public class LocationEvent extends Event {
 	/**
 	 * GeoFence number of the location.
 	 */
-	private int geoFence;
+	private long geoFence;
 
 	/**
 	 * Available WIFI locations at the current location.
@@ -58,7 +59,7 @@ public class LocationEvent extends Event {
 	/**
 	 * @return the geoFence
 	 */
-	public int getGeoFence() {
+	public long getGeoFence() {
 		return geoFence;
 	}
 
@@ -66,7 +67,7 @@ public class LocationEvent extends Event {
 	 * @param geoFence
 	 *            the geoFence to set
 	 */
-	public void setGeoFence(int geoFence) {
+	public void setGeoFence(long geoFence) {
 		this.geoFence = geoFence;
 	}
 
@@ -94,6 +95,7 @@ public class LocationEvent extends Event {
 
 	@Override
 	public String toString() {
-		return String.format("[%.8f, %.8f] = %d", latitude, longitude, geoFence);
+		return String.format("%s -> [%.8f, %.8f] = %d \t @%s:", getUserID(),
+				latitude, longitude, geoFence, new Date(getTime()).toString());
 	}
 }

@@ -1,6 +1,7 @@
 package com.aslan.contra.cep;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import com.aslan.contra.model.LocationEvent;
@@ -21,25 +22,46 @@ public class EsperDemo {
 	public static void main(String[] args) {
 
 		// The Configuration is meant only as an initialization-time object.
-		Configuration cepConfig = new Configuration();
-		cepConfig.addEventType("LocationEvent", LocationEvent.class.getName());
-		EPServiceProvider cep = EPServiceProviderManager.getProvider("myCEPEngine", cepConfig);
-		EPRuntime cepRT = cep.getEPRuntime();
+		Configuration configuration = new Configuration();
+		configuration.addEventType("Origin", LocationEvent.class.getName());
 
-		EPAdministrator admin = cep.getEPAdministrator();
+		EPServiceProvider serviceProvider = EPServiceProviderManager
+				.getProvider("CoreEngine", configuration);
+		EPRuntime cepRuntime = serviceProvider.getEPRuntime();
 
-		EPStatement smt = admin.createEPL(
-				"select beginevent.geoFence as geoFence, beginevent.time as beginTime, endevent.time as endTime, middleevent[0].wifiNetworks as wifiNetworks from pattern ["
-						+ "beginevent=LocationEvent" + "-> middleevent=LocationEvent(geoFence=beginevent.geoFence)"
-						+ "until endevent=LocationEvent(geoFence!=beginevent.geoFence) where timer:within(10 second)]");
+		EPAdministrator admin = serviceProvider.getEPAdministrator();
 
-		smt.addListener(new UpdateListener() {
+		admin.createEPL("insert into LocationEvent select * from Origin.std:groupwin(userID).win:time_batch(5 seconds)");
+		EPStatement statement = admin
+				.createEPL("select beginevent.userID as userID, beginevent.geoFence as geoFence, beginevent.time as beginTime, endevent.time as endTime, beginevent.wifiNetworks as wifiNetworks"
+						+ " from pattern [every (beginevent=LocationEvent -> middleevent=LocationEvent(geoFence=beginevent.geoFence AND (time - beginevent.time < 420000))"
+						+ " until endevent=LocationEvent(geoFence!=beginevent.geoFence OR (time - beginevent.time >= 420000)))] group by beginevent.userID");
 
-			@SuppressWarnings("unchecked")
+		statement.addListener(new UpdateListener() {
 			@Override
-			public void update(EventBean[] newEvents, EventBean[] arg1) {
-				MapEventBean bean = (MapEventBean) newEvents[0];
+			public void update(EventBean[] newEvents, EventBean[] oldEvents) {
+				for (EventBean e : newEvents) {
+					System.out.println(e);
+					try {
+						MapEventBean bean = (MapEventBean) e;
+						print(bean);
+						System.out.println();
+					} catch (Exception ex) {
+						System.out.println(ex.getMessage());
+					}
+				}
 
+				// for (EventBean e : oldEvents) {
+				// MapEventBean bean = (MapEventBean) e;
+				// print(bean);
+				// System.out.println();
+				// }
+				System.out
+						.println("--------------------------------------------");
+			}
+
+			public void print(MapEventBean bean) {
+				String userID = (String) bean.get("userID");
 				Integer geoFence = (Integer) bean.get("geoFence");
 
 				Calendar start = Calendar.getInstance();
@@ -48,23 +70,28 @@ public class EsperDemo {
 				Calendar end = Calendar.getInstance();
 				end.setTimeInMillis((Long) bean.get("endTime"));
 
+				long interval = (end.getTimeInMillis() - start
+						.getTimeInMillis()) / 1000 / 60;
+
 				// System.out.println(bean.get("wifiNetworks"));
-				List<String> wifiNetworks = (List<String>) bean.get("wifiNetworks");
+				@SuppressWarnings("unchecked")
+				List<String> wifiNetworks = (List<String>) bean
+						.get("wifiNetworks");
 
 				Calendar c = Calendar.getInstance();
 				int timeOfDay = c.get(Calendar.HOUR_OF_DAY);
 
-				if (timeOfDay >= 6 && timeOfDay <= 18) {
-					// Work
-				} else {
-					// Home
+				if (timeOfDay >= 6 && timeOfDay <= 18) { // Work
+					System.out.println("In Work");
+				} else { // Home
+					System.out.println("In Home");
 				}
-
+				System.out.println("User ID: " + userID);
 				System.out.println("GEO Fence: " + geoFence);
-				System.out.println("From: " + start);
-				System.out.println("To: " + end);
+				System.out.println("From: " + start.getTime());
+				System.out.println("To: " + end.getTime());
+				System.out.println("Interval: " + interval + " mins");
 				System.out.println(wifiNetworks);
-				System.out.println();
 			}
 		});
 
@@ -82,33 +109,55 @@ public class EsperDemo {
 		// generateData(cepRT, 6.87811312, 79.85744618);
 
 		try {
-			generateData(cepRT, 6.87809544, 79.8575395);
+			generateData(cepRuntime, 6.87809544, 79.8575395);
 			Thread.sleep(500);
-			generateData(cepRT, 6.878472, 79.8573639);
+			generateData(cepRuntime, 6.878472, 79.8573639);
 			Thread.sleep(500);
-			generateData(cepRT, 6.87824868, 79.85762096);
+			generateData(cepRuntime, 6.87824868, 79.85762096);
 			Thread.sleep(500);
-			generateData(cepRT, 6.87825261, 79.85742666);
-			Thread.sleep(1000);
-			generateData(cepRT, 6.87814489, 79.8577096);
+			generateData(cepRuntime, 6.87825261, 79.85742666);
 			Thread.sleep(500);
-			generateData(cepRT, 6.87813571, 79.85746346);
+			generateData(cepRuntime, 6.87814489, 79.8577096);
 			Thread.sleep(500);
-			generateData(cepRT, 6.8783003, 79.8576553);
+			generateData(cepRuntime, 6.87813571, 79.85746346);
 			Thread.sleep(500);
-			generateData(cepRT, 6.87812017, 75.857593);
+			generateData(cepRuntime, 6.8783003, 79.8576553);
 			Thread.sleep(500);
-			generateData(cepRT, 6.87822805, 79.85757823);
+			generateData(cepRuntime, 6.87812017, 75.857593);
 			Thread.sleep(500);
-			generateData(cepRT, 6.87811312, 79.85744618);
-			Thread.sleep(1000);
+			generateData(cepRuntime, 6.87822805, 79.85757823);
+			Thread.sleep(500);
+			generateData(cepRuntime, 6.87811312, 79.85744618);
+			Thread.sleep(500);
+			generateData(cepRuntime, 6.87811312, 79.85744618);
+			Thread.sleep(500);
+			generateData(cepRuntime, 6.87811312, 79.85744618);
+			Thread.sleep(500);
+			generateData(cepRuntime, 6.87811312, 79.85744618);
+			Thread.sleep(500);
+			generateData(cepRuntime, 6.87811312, 79.85744618);
+			Thread.sleep(500);
+			generateData(cepRuntime, 6.87811312, 79.85744618);
+			Thread.sleep(500);
+			generateData(cepRuntime, 6.87811312, 79.85744618);
+			Thread.sleep(500);
+			generateData(cepRuntime, 6.87811312, 79.85744618);
+			Thread.sleep(500);
+			generateData(cepRuntime, 6.87811312, 79.85744618);
+			Thread.sleep(500);
+			generateData(cepRuntime, 6.87811312, 79.85744618);
+			Thread.sleep(500);
+			generateData(cepRuntime, 6.87811312, 79.85744618);
+			// Thread.sleep(10000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		System.out.println("Total: " + c);
 
 	}
 
 	static int count = 20;
+	static int c = 0;
 
 	public static void generateData(EPRuntime cepRT, double lat, double lon) {
 		int levelOfDetail = 100;
@@ -119,10 +168,17 @@ public class EsperDemo {
 		event.setLongitude(lon);
 		event.setSource("gps");
 		event.setTime(CURRENT_TIME - (60000 * count--));
-		event.setUserID("U001");
+		if (count % 2 == 0) {
+			event.setUserID("U001");
+		} else {
+			event.setUserID("U002");
+		}
 		event.addAll("UOMWireless", "CSE Smart");
 		event.setGeoFence(LocationGrid.toGridNumber(lat, lon, levelOfDetail));
-		System.out.println("Insert: " + event.getGeoFence());
+		System.out.println("Insert: " + event.getGeoFence() + "\t"
+				+ event.getUserID() + "\t@ "
+				+ new Date(event.getTime()).toString());
 		cepRT.sendEvent(event);
+		c++;
 	}
 }

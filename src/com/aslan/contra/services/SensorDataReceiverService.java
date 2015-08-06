@@ -17,12 +17,11 @@ public class SensorDataReceiverService {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_HTML)
 	public Response save(SensorResponse response) {
-		System.out.println(response);
-//		// Get the CEPProcessor
-//		CEPProcessor processor = CEPProcessor.getInstance();
-//		// Add the event to the processor
-//		processor.addEvent(response);
-//		// Return a successful response
+		// Get the CEPProcessor
+		CEPProcessor processor = CEPProcessor.getInstance();
+		// Add the event to the processor
+		processor.addEvent(response);
+		// Return a successful response
 		return Response.status(201).entity("Accepted").build();
 	}
 }

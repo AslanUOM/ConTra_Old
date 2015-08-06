@@ -12,9 +12,9 @@ public final class Constants {
 		public static final String LOCATION = "location";
 
 		/**
-		 * Type WIFI.
+		 * Type AVAILABLE_WIFI.
 		 */
-		public static final String WIFI = "wifi";
+		public static final String AVAILABLE_WIFI = "networks";
 	}
 
 }

@@ -31,12 +31,23 @@ public class EsperDemo {
 
 		EPAdministrator admin = serviceProvider.getEPAdministrator();
 
-		admin.createEPL("insert into LocationEvent select * from Origin.std:groupwin(userID).win:time_batch(5 seconds)");
+		EPStatement s2 =admin.createEPL("insert into LocationEvent select * from Origin.std:groupwin(userID).win:ext_timed_batch(time, 10 minutes)");
 		EPStatement statement = admin
 				.createEPL("select beginevent.userID as userID, beginevent.geoFence as geoFence, beginevent.time as beginTime, endevent.time as endTime, beginevent.wifiNetworks as wifiNetworks"
 						+ " from pattern [every (beginevent=LocationEvent -> middleevent=LocationEvent(geoFence=beginevent.geoFence AND (time - beginevent.time < 420000))"
 						+ " until endevent=LocationEvent(geoFence!=beginevent.geoFence OR (time - beginevent.time >= 420000)))] group by beginevent.userID");
 
+		s2.addListener(new UpdateListener() {
+			@Override
+			public void update(EventBean[] newEvents, EventBean[] oldEvents) {
+				for (EventBean e : newEvents) {
+					System.out.println(e);
+				}
+				System.out
+						.println("--------------------------------------------");
+			}
+		});
+		
 		statement.addListener(new UpdateListener() {
 			@Override
 			public void update(EventBean[] newEvents, EventBean[] oldEvents) {
@@ -48,6 +59,7 @@ public class EsperDemo {
 						System.out.println();
 					} catch (Exception ex) {
 						System.out.println(ex.getMessage());
+						ex.printStackTrace();
 					}
 				}
 
@@ -62,7 +74,7 @@ public class EsperDemo {
 
 			public void print(MapEventBean bean) {
 				String userID = (String) bean.get("userID");
-				Integer geoFence = (Integer) bean.get("geoFence");
+				Long geoFence = (Long) bean.get("geoFence");
 
 				Calendar start = Calendar.getInstance();
 				start.setTimeInMillis((Long) bean.get("beginTime"));

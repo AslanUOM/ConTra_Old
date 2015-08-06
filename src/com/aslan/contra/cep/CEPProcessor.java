@@ -64,13 +64,22 @@ public class CEPProcessor {
 	 */
 	private CEPProcessor() {
 		// Query definition
-		ADMIN.createEPL("insert into LocationEvent select * from Origin.std:groupwin(userID).win:time_batch(5 seconds)");
+		ADMIN.createEPL("insert into LocationEvent select * from Origin.std:groupwin(userID).win:ext_timed_batch(time, 24 hours)");
 		EPStatement statement = ADMIN
 				.createEPL("select beginevent.userID as userID, beginevent.geoFence as geoFence, beginevent.time as beginTime, endevent.time as endTime, beginevent.wifiNetworks as wifiNetworks"
-						+ " from pattern [every (beginevent=LocationEvent -> middleevent=LocationEvent(geoFence=beginevent.geoFence AND (time - beginevent.time < 420000))"
-						+ " until endevent=LocationEvent(geoFence!=beginevent.geoFence OR (time - beginevent.time >= 420000)))] group by beginevent.userID");
+						+ " from pattern [every (beginevent=LocationEvent -> middleevent=LocationEvent(geoFence=beginevent.geoFence AND (time - beginevent.time < 7200000))"
+						+ " until endevent=LocationEvent(geoFence!=beginevent.geoFence OR (time - beginevent.time >= 7200000)))] group by beginevent.userID");
 
 		// Add listener
+		// s.addListener(new UpdateListener() {
+		// @Override
+		// public void update(EventBean[] newEvents, EventBean[] oldEvents) {
+		// for (EventBean e : newEvents) {
+		// System.out.println(e);
+		// }
+		// }
+		// });
+
 		statement.addListener(new UpdateListener() {
 			@Override
 			public void update(EventBean[] newEvents, EventBean[] oldEvents) {
@@ -96,29 +105,28 @@ public class CEPProcessor {
 			String[] info = data.getData();
 			switch (data.getType()) {
 			case Constants.Type.LOCATION:
-				long latitude = Long.parseLong(info[0]);
-				long longitude = Long.parseLong(info[1]);
+				double latitude = Double.parseDouble(info[0]);
+				double longitude = Double.parseDouble(info[1]);
 				long geoFence = LocationGrid.toGridNumber(latitude, longitude);
 
 				event.setLatitude(latitude);
 				event.setLongitude(longitude);
 				event.setGeoFence(geoFence);
-
 				event.setTime(data.getTime());
 				break;
 
-			case Constants.Type.WIFI:
-				List<String> wifiNetworks = Arrays.asList(data.getData());
+			case Constants.Type.AVAILABLE_WIFI:
+				List<String> wifiNetworks = Arrays.asList(info);
 				event.setWifiNetworks(wifiNetworks);
 			}
 		}
-
+		System.out.println(event);
 		CEP_RUNTIME.sendEvent(event);
 	}
 
 	public void onLocationFound(MapEventBean bean) {
 		String userID = (String) bean.get("userID");
-		Integer geoFence = (Integer) bean.get("geoFence");
+		Long geoFence = (Long) bean.get("geoFence");
 
 		Calendar start = Calendar.getInstance();
 		start.setTimeInMillis((Long) bean.get("beginTime"));
@@ -149,7 +157,8 @@ public class CEPProcessor {
 		System.out.println("To: " + end.getTime());
 		System.out.println("Interval: " + interval + " mins");
 		System.out.println("Status: " + status);
-		System.out.println(wifiNetworks);
+		System.out.println("WIFI: " + wifiNetworks);
+		System.out.println();
 	}
 
 	private static boolean isDayTime(Calendar startCalendar) {
@@ -172,7 +181,7 @@ public class CEPProcessor {
 	 */
 	public static CEPProcessor getInstance() {
 		if (instance == null) {
-			synchronized (instance) {
+			synchronized (CEPProcessor.class) {
 				if (instance == null) {
 					instance = new CEPProcessor();
 				}

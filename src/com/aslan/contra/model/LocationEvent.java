@@ -5,6 +5,13 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * This class represents an event of location detection. It consists the geo
+ * location related information and available WIFI addresses.
+ * 
+ * @author gobinath
+ *
+ */
 public class LocationEvent extends Event {
 	/**
 	 * Latitude of the location.

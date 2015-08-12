@@ -1,6 +1,13 @@
 package com.aslan.contra.model;
 
-public class Event {
+/**
+ * This class is the abstract super class of all Events which is used to feed
+ * the events to CEP streams.
+ * 
+ * @author gobinath
+ *
+ */
+public abstract class Event {
 	/**
 	 * ID of the user.
 	 */

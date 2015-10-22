@@ -1,5 +1,11 @@
 package com.aslan.contra.cep.query;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -9,34 +15,34 @@ import org.apache.log4j.Logger;
 import com.aslan.contra.util.TimeUtility;
 
 public class LocationIdentificationContext extends Context {
-    /**
-     * Logger to log the events.
-     */
-    private static final Logger LOGGER = Logger
-            .getLogger(LocationIdentificationContext.class);
+	boolean sent=false;
+	/**
+	 * Logger to log the events.
+	 */
+	private static final Logger LOGGER = Logger.getLogger(LocationIdentificationContext.class);
 
-    /**
-     * External batch time window interval in hours.
-     */
-    private final long BATCH_TIME = 24;
+	/**
+	 * External batch time window interval in hours.
+	 */
+	private final long BATCH_TIME = 24;
 
-    /**
-     * Wait until this time if there are no changes in GEO location.<br>
-     * Time in milliseconds.
-     */
-    private final long MAX_TIME_INTERVAL = 7200000;
+	/**
+	 * Wait until this time if there are no changes in GEO location.<br>
+	 * Time in milliseconds.
+	 */
+	private final long MAX_TIME_INTERVAL = 7200000;
 
-    /**
-     * Construct a LocationIdentificationQuery.
-     * 
-     * @param sourceStream
-     */
-    public LocationIdentificationContext(String inputStream) {
-        super(inputStream);
-        buildQuery();
-    }
+	/**
+	 * Construct a LocationIdentificationQuery.
+	 * 
+	 * @param sourceStream
+	 */
+	public LocationIdentificationContext(String inputStream) {
+		super(inputStream);
+		buildQuery();
+	}
 
-    /**
+	/**
      * Generate queries for location identification.
      */
     private void buildQuery() {
@@ -75,10 +81,10 @@ public class LocationIdentificationContext extends Context {
                 if (interval >= 5) {
                     if (TimeUtility.isDayTime(start)) {
                         // Work
-                        status = "In work";
+                        status = "Work";
                     } else {
                         // Home
-                        status = "In Home";
+                        status = "Home";
                     }
                 }
                 // Print the information
@@ -89,12 +95,59 @@ public class LocationIdentificationContext extends Context {
                 LOGGER.info("Interval: " + interval + " mins");
                 LOGGER.info("Status: " + status);
                 LOGGER.info("WIFI: " + wifiNetworks);
+                
+//                excutePost("http://contra.projects.mrt.ac.lk:3000/app/push/users/55e5528932b6b37322dc654f/has/devices/all", status);
+                excutePost("http://contra.projects.mrt.ac.lk:3000/app/push/devices/all", status);
             }
         });
     }
 
-    @Override
-    public Type getType() {
-        return Type.LOCATION;
-    }
+	public static String excutePost(String targetURL, String urlParameters) {
+		HttpURLConnection connection = null;
+		try {
+			// Create connection
+			URL url = new URL(targetURL);
+			connection = (HttpURLConnection) url.openConnection();
+			connection.setRequestMethod("POST");
+			connection.setRequestProperty("Content-Type", "application/json");
+			connection.setRequestProperty("Authorization", "c10ef69ca0cda150024b46fe0b9910ff487d16c0");
+
+			connection.setRequestProperty("Content-Length", Integer.toString(urlParameters.getBytes().length));
+			connection.setRequestProperty("Content-Language", "en-US");
+
+			connection.setUseCaches(false);
+			connection.setDoOutput(true);
+
+			// Send request
+			DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
+			wr.writeBytes(String.format("{\"message\":\"Vishnu is @%s\"}", urlParameters));
+			wr.close();
+
+			// Get Response
+			InputStream is = connection.getInputStream();
+			BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+			StringBuilder response = new StringBuilder(); // or StringBuffer if
+															// not Java 5+
+			String line;
+			while ((line = rd.readLine()) != null) {
+				System.out.println(line);
+				response.append(line);
+				response.append('\r');
+			}
+			rd.close();
+			return response.toString();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		} finally {
+			if (connection != null) {
+				connection.disconnect();
+			}
+		}
+	}
+
+	@Override
+	public Type getType() {
+		return Type.LOCATION;
+	}
 }

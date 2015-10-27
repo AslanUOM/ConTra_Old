@@ -15,7 +15,7 @@ import org.apache.log4j.Logger;
 import com.aslan.contra.util.TimeUtility;
 
 public class LocationIdentificationContext extends Context {
-	boolean sent=false;
+	boolean sent = false;
 	/**
 	 * Logger to log the events.
 	 */
@@ -43,64 +43,63 @@ public class LocationIdentificationContext extends Context {
 	}
 
 	/**
-     * Generate queries for location identification.
-     */
-    private void buildQuery() {
-        String smt1 = String
-                .format("insert into LocationEvent select * from %s.std:groupwin(userID).win:ext_timed_batch(time, %d hours)",
-                        INPUT_STREAM, BATCH_TIME);
-        String smt2 = String
-                .format("select beginevent.userID as userID, beginevent.geoFence as geoFence, beginevent.time as beginTime, endevent.time as endTime, beginevent.wifiNetworks as wifiNetworks"
-                        + " from pattern [every (beginevent=LocationEvent -> middleevent=LocationEvent(geoFence=beginevent.geoFence AND (time - beginevent.time < %d))"
-                        + " until endevent=LocationEvent(geoFence!=beginevent.geoFence OR (time - beginevent.time >= %d)))] group by beginevent.userID",
-                        MAX_TIME_INTERVAL, MAX_TIME_INTERVAL);
+	 * Generate queries for location identification.
+	 */
+	private void buildQuery() {
+		String smt1 = String.format(
+				"insert into LocationEvent select * from %s.std:groupwin(userID).win:ext_timed_batch(time, %d hours)",
+				INPUT_STREAM, BATCH_TIME);
+		String smt2 = String.format(
+				"select beginevent.userID as userID, beginevent.geoFence as geoFence, beginevent.time as beginTime, endevent.time as endTime, beginevent.wifiNetworks as wifiNetworks"
+						+ " from pattern [every (beginevent=LocationEvent -> middleevent=LocationEvent(geoFence=beginevent.geoFence AND (time - beginevent.time < %d))"
+						+ " until endevent=LocationEvent(geoFence!=beginevent.geoFence OR (time - beginevent.time >= %d)))] group by beginevent.userID",
+				MAX_TIME_INTERVAL, MAX_TIME_INTERVAL);
 
-        super.add(smt1, OnUpdateListener.NULL_OBJECT);
-        super.add(smt2, new OnUpdateListener() {
+		super.add(smt1, OnUpdateListener.NULL_OBJECT);
+		super.add(smt2, new OnUpdateListener() {
 
-            @Override
-            public void onUpdate(Map<String, Object> properties) {
-                String userID = (String) properties.get("userID");
-                Long geoFence = (Long) properties.get("geoFence");
+			@Override
+			public void onUpdate(Map<String, Object> properties) {
+				String userID = (String) properties.get("userID");
+				Long geoFence = (Long) properties.get("geoFence");
 
-                Calendar start = Calendar.getInstance();
-                start.setTimeInMillis((Long) properties.get("beginTime"));
+				Calendar start = Calendar.getInstance();
+				start.setTimeInMillis((Long) properties.get("beginTime"));
 
-                Calendar end = Calendar.getInstance();
-                end.setTimeInMillis((Long) properties.get("endTime"));
+				Calendar end = Calendar.getInstance();
+				end.setTimeInMillis((Long) properties.get("endTime"));
 
-                // System.out.println(bean.get("wifiNetworks"));
-                @SuppressWarnings("unchecked")
-                List<String> wifiNetworks = (List<String>) properties
-                        .get("wifiNetworks");
+				// System.out.println(bean.get("wifiNetworks"));
+				@SuppressWarnings("unchecked")
+				List<String> wifiNetworks = (List<String>) properties.get("wifiNetworks");
 
-                long interval = (end.getTimeInMillis() - start
-                        .getTimeInMillis()) / 1000 / 60;
+				long interval = (end.getTimeInMillis() - start.getTimeInMillis()) / 1000 / 60;
 
-                String status = "NA";
-                if (interval >= 5) {
-                    if (TimeUtility.isDayTime(start)) {
-                        // Work
-                        status = "Work";
-                    } else {
-                        // Home
-                        status = "Home";
-                    }
-                }
-                // Print the information
-                LOGGER.info("User ID: " + userID);
-                LOGGER.info("GEO Fence: " + geoFence);
-                LOGGER.info("From: " + start.getTime());
-                LOGGER.info("To: " + end.getTime());
-                LOGGER.info("Interval: " + interval + " mins");
-                LOGGER.info("Status: " + status);
-                LOGGER.info("WIFI: " + wifiNetworks);
-                
-//                excutePost("http://contra.projects.mrt.ac.lk:3000/app/push/users/55e5528932b6b37322dc654f/has/devices/all", status);
-                excutePost("http://contra.projects.mrt.ac.lk:3000/app/push/devices/all", status);
-            }
-        });
-    }
+				String status = "NA";
+				if (interval >= 5) {
+					if (TimeUtility.isDayTime(start)) {
+						// Work
+						status = "Work";
+					} else {
+						// Home
+						status = "Home";
+					}
+				}
+				// Print the information
+				LOGGER.info("User ID: " + userID);
+				LOGGER.info("GEO Fence: " + geoFence);
+				LOGGER.info("From: " + start.getTime());
+				LOGGER.info("To: " + end.getTime());
+				LOGGER.info("Interval: " + interval + " mins");
+				LOGGER.info("Status: " + status);
+				LOGGER.info("WIFI: " + wifiNetworks);
+
+				// excutePost("http://contra.projects.mrt.ac.lk:3000/app/push/users/55e5528932b6b37322dc654f/has/devices/all",
+				// status);
+				//excutePost("http://contra.projects.mrt.ac.lk:3000/app/push/devices/all", status);
+			}
+		});
+	}
 
 	public static String excutePost(String targetURL, String urlParameters) {
 		HttpURLConnection connection = null;

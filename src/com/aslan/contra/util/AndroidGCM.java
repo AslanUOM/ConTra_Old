@@ -26,7 +26,7 @@ public class AndroidGCM {
 
 	private String messagePayload = "success";
 	private static final String BASE_URL = "https://android.googleapis.com/gcm/send";
-	private List<String> devicesIds;
+	private Iterable<String> devicesIds;
 	private String deviceId = "APA91bGh4b6ymUKcqfVGTr3WB5E78OZ6dcackbxtKzcPSrOKuF0LDeBtLvL_B7eN07Ryjq_AtluEbey-wtJ5qUp9PpjCOhZthb35kyMThI8byk0jpgoWuCT162rJGpVTBA0PolGZxtO6z-T_8rMbAW49sVY_rI4Zjw";
 
 	//TODO remove main and use the call where needed
@@ -41,7 +41,7 @@ public class AndroidGCM {
 		this.deviceId = deviceId;
 	}
 
-	public AndroidGCM(String messagePayload, List<String> devicesIds) {
+	public AndroidGCM(String messagePayload, Iterable<String> devicesIds) {
 		super();
 		this.messagePayload = messagePayload;
 		this.devicesIds = devicesIds;
@@ -100,7 +100,7 @@ public class AndroidGCM {
 		subJsonObject.put("score", "4x8");
 		subJsonObject.put("time", getTime());
 		subJsonObject.put("message", messagePayload);
-		if (devicesIds != null && devicesIds.size() > 0) {
+		if (devicesIds != null) {
 			for (String deviceId : devicesIds)
 				jsonArray.put(deviceId);
 		} else {

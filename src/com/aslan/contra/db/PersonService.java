@@ -3,7 +3,6 @@ package com.aslan.contra.db;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.aslan.contra.entities.Home;
 import com.aslan.contra.entities.Person;
 
 public class PersonService extends GenericService<Person> {

@@ -15,6 +15,11 @@ public final class Constants {
 		 * Type AVAILABLE_WIFI.
 		 */
 		public static final String AVAILABLE_WIFI = "networks";
+		
+		/**
+		 * Type CONTACTS.
+		 */
+		public static final String CONTACTS = "contacts";
 	}
 
 }

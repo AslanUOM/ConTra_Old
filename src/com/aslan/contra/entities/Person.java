@@ -40,12 +40,12 @@ public class Person extends Entity {
 	 * Set of devices. One to many relationship.
 	 */
 	@Relationship(type = "OWNS")
-	private Set<Device> devices;
+	private Set<Device> devices = new HashSet<>();
 
 	/**
 	 * The persons who are listed as friends by this person.
 	 */
-	@Relationship(type = "FRIENDS")
+	@Relationship(type = "FRIEND")
 	private Set<Person> friends = new HashSet<>();
 
 	public String getName() {
@@ -104,4 +104,28 @@ public class Person extends Entity {
 		this.currentLocation = currentLocation;
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((phoneNumber == null) ? 0 : phoneNumber.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Person other = (Person) obj;
+		if (phoneNumber == null) {
+			if (other.phoneNumber != null)
+				return false;
+		} else if (!phoneNumber.equals(other.phoneNumber))
+			return false;
+		return true;
+	}
 }

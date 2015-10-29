@@ -15,6 +15,7 @@ import org.json.JSONObject;
 
 public class AndroidGCM {
 	//This is our new project detail
+//	Sender ID and App Name are not necessarily needed
 //	private String APP_NAME = "ConTra";
 //	private String API_KEY = "AIzaSyAYc-ACqE0IlT6cEbQ2W9ykqyw0It79Tzc";
 //	private String SENDER_ID = "189417379323";
@@ -24,13 +25,14 @@ public class AndroidGCM {
 	private String API_KEY = "AIzaSyBgJ6BDMOxDgZ8GLlHZTava2BeAsyZ9QGI";
 	private String SENDER_ID = "986180772600";
 
-	private String messagePayload = "success";
+	private String messagePayload;
 	private static final String BASE_URL = "https://android.googleapis.com/gcm/send";
 	private Iterable<String> devicesIds;
-	private String deviceId = "APA91bGh4b6ymUKcqfVGTr3WB5E78OZ6dcackbxtKzcPSrOKuF0LDeBtLvL_B7eN07Ryjq_AtluEbey-wtJ5qUp9PpjCOhZthb35kyMThI8byk0jpgoWuCT162rJGpVTBA0PolGZxtO6z-T_8rMbAW49sVY_rI4Zjw";
+	private String deviceId;
 
 	//TODO remove main and use the call where needed
 	public static void main(String[] args) {
+//		used vishnu's device ID for testing
 		AndroidGCM androidGCM = new AndroidGCM("success", "APA91bGh4b6ymUKcqfVGTr3WB5E78OZ6dcackbxtKzcPSrOKuF0LDeBtLvL_B7eN07Ryjq_AtluEbey-wtJ5qUp9PpjCOhZthb35kyMThI8byk0jpgoWuCT162rJGpVTBA0PolGZxtO6z-T_8rMbAW49sVY_rI4Zjw");
 		System.out.println(androidGCM.executeHTTPSConnectionBuilder());
 	}

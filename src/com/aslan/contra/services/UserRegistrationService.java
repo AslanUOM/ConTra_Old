@@ -19,7 +19,7 @@ import com.aslan.contra.entities.Person;
 import com.aslan.contra.util.Utility;
 import com.google.i18n.phonenumbers.NumberParseException;
 
-@Path("/register")
+@Path("/user")
 public class UserRegistrationService {
 	/**
 	 * Logger to log the events.
@@ -27,7 +27,7 @@ public class UserRegistrationService {
 	private static final Logger LOGGER = Logger.getLogger(UserRegistrationService.class);
 
 	@POST
-	@Path("/user")
+	@Path("/register")
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public Response registerUser(@FormParam("name") String name, @FormParam("country") String country,
@@ -112,6 +112,34 @@ public class UserRegistrationService {
 			}
 
 		}
+		return response;
+	}
+
+	@POST
+	@Path("/update")
+	@Produces(MediaType.TEXT_HTML)
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	public Response updateProfile(@FormParam("userId") String userId, @FormParam("name") String name,
+			@FormParam("email") String email) {
+
+		// Start with a default Response
+		Response response = Response.status(500).entity("Unknown error.").build();
+
+		PersonService personService = new PersonService();
+		Person person = personService.find(userId);
+
+		if (person != null) {
+			person.setName(name);
+			// person.setEmail(email);
+
+			// Save the person
+			personService.createOrUpdate(person);
+
+			response = Response.status(201).entity("Profile is updated successfully").build();
+		} else {
+			response = Response.status(406).entity("Invalid user id").build();
+		}
+
 		return response;
 	}
 }

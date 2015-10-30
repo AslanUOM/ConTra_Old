@@ -23,7 +23,7 @@ public class Utility {
 	public static String formatPhoneNumber(String country, String number) throws NumberParseException {
 		PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
 		PhoneNumber phoneNumber = phoneUtil.parse(number, country);
-		String formattedNumber = phoneUtil.format(phoneNumber, PhoneNumberFormat.INTERNATIONAL);
+		String formattedNumber = phoneUtil.format(phoneNumber, PhoneNumberFormat.E164);
 		return formattedNumber;
 	}
 }

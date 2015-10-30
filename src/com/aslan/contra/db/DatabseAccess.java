@@ -1,8 +1,11 @@
 package com.aslan.contra.db;
 
 import java.io.IOException;
+import java.util.Date;
 
+import com.aslan.contra.entities.Device;
 import com.aslan.contra.entities.Location;
+import com.aslan.contra.entities.Person;
 import com.orientechnologies.orient.client.remote.OServerAdmin;
 import com.orientechnologies.orient.core.tx.OTransaction;
 import com.orientechnologies.orient.object.db.OObjectDatabaseTx;
@@ -22,8 +25,8 @@ public class DatabseAccess {
 
 	public OObjectDatabaseTx getDatbase() {
 		// OObjectDatabaseTx is not a thread safe class
-		OObjectDatabaseTx database = new OObjectDatabaseTx("remote:localhost/test");
-		database.open("root", "root");
+		OObjectDatabaseTx database = new OObjectDatabaseTx("remote:localhost/myTest");
+		database.open("root", "annet");
 		database.getEntityManager().registerEntityClasses("com.aslan.contra.entities");
 		return database;
 	}
@@ -34,7 +37,7 @@ public class DatabseAccess {
 	public void resetDatabase() {
 		OServerAdmin serverAdmin;
 		try {
-			serverAdmin = new OServerAdmin("remote:localhost/test").connect("root", "root");
+			serverAdmin = new OServerAdmin("remote:localhost/myTest").connect("root", "annet");
 			serverAdmin.dropDatabase("plocal");
 			if (!serverAdmin.existsDatabase("plocal")) {
 				serverAdmin.createDatabase("graph", "plocal");
@@ -60,6 +63,61 @@ public class DatabseAccess {
 		return instance;
 	}
 
+	public void savePerson (Long id, String name, String phn_no){
+		
+		OObjectDatabaseTx database = getDatbase();
+		OTransaction transaction = null;
+		
+		try{
+			transaction = database.getTransaction();
+			Person person = database.newInstance(Person.class);
+			person.setId(id);
+			person.setName(name);
+			person.setPhoneNumber(phn_no);
+			
+			database.save(person);
+			transaction.commit();
+		}
+		catch(Exception e){
+			if(transaction != null){
+				transaction.rollback();	
+			}
+		}
+		 finally {
+			database.close();
+		}
+	}
+	
+	public void saveDevice(Long deviceId,String token, String name, String serial, boolean active, Date lastSeen){
+		
+		OObjectDatabaseTx database = getDatbase();
+
+		OTransaction transaction = null;
+
+		try {
+			transaction = database.getTransaction();
+			Device device = database.newInstance(Device.class);
+			device.setId(deviceId);
+			device.setToken(token);
+			device.setName(name);
+			device.setSerial(serial);
+			device.setActive(active);
+			device.setLastSeen(lastSeen);
+			
+			database.save(device);
+			transaction.commit();
+		}
+		catch(Exception e){
+			if (transaction != null) {
+				transaction.rollback();
+			}
+		} finally {
+			database.close();
+		}
+	}
+	
+	
+	
 	public void saveLocation(String name, long geoFence, double lat, double lon) {
 		OObjectDatabaseTx database = getDatbase();
 

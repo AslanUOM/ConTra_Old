@@ -19,6 +19,10 @@ public class Person extends Entity {
 	private String phoneNumber;
 
 	/**
+	 * Email address of the person.
+	 */
+	private String email;
+	/**
 	 * Home location.
 	 */
 	@Relationship(type = "LIVES_IN")
@@ -102,6 +106,22 @@ public class Person extends Entity {
 
 	public void setCurrentLocation(Location currentLocation) {
 		this.currentLocation = currentLocation;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public Set<Device> getDevices() {
+		return devices;
+	}
+
+	public void setDevices(Set<Device> devices) {
+		this.devices = devices;
 	}
 
 	@Override

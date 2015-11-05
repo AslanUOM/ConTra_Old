@@ -20,11 +20,26 @@ public class PersonService extends GenericService<Person> {
 		return friends;
 	}
 
+	/**
+	 * Find a person using the formatted phone number. Formatted phone number is
+	 * a unique attribute used to identify person.
+	 * 
+	 * @param phoneNumber
+	 * @return
+	 */
 	public Person find(String phoneNumber) {
 		Map<String, String> parameters = new HashMap<>();
 		parameters.put("phone_number", phoneNumber);
 		String cypher = "MATCH (person:Person) WHERE person.phoneNumber = {phone_number} RETURN person";
 		Person person = session.queryForObject(getEntityType(), cypher, parameters);
 		return person;
+	}
+
+	public Iterable<Person> nearByFriends(String phoneNumber) {
+		Map<String, String> parameters = new HashMap<>();
+		parameters.put("phone_number", phoneNumber);
+		String cypher = "MATCH (person:Person)-[:CURRENT_LOCATION]->(location)<-[:CURRENT_LOCATION]-(people)<-[:FRIEND]-(friends) WHERE person.phoneNumber = {phone_number} RETURN friends";
+		Iterable<Person> friends = session.query(getEntityType(), cypher, parameters);
+		return friends;
 	}
 }

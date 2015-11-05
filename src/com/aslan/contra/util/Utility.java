@@ -17,7 +17,7 @@ public class Utility {
 	 * @throws NumberParseException
 	 */
 	public static String formatPhoneNumber(String number) throws NumberParseException {
-		return formatPhoneNumber("lk", number);
+		return formatPhoneNumber("LK", number);
 	}
 
 	public static String formatPhoneNumber(String country, String number) throws NumberParseException {

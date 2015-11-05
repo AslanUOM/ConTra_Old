@@ -1,6 +1,7 @@
 package com.aslan.contra.services;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -9,10 +10,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.aslan.contra.cep.CEPProcessor;
-import com.aslan.contra.cep.query.Context;
-import com.aslan.contra.cep.query.Context.Type;
-import com.aslan.contra.cep.query.ContextFactory;
+import org.apache.log4j.Logger;
+
 import com.aslan.contra.db.LocationService;
 import com.aslan.contra.db.PersonService;
 import com.aslan.contra.entities.Location;
@@ -33,13 +32,15 @@ import com.google.i18n.phonenumbers.NumberParseException;
  */
 @Path("/sensordatareceiver")
 public class SensorDataReceiverService {
-	private static CEPProcessor processor = CEPProcessor.getProcessor();
+	private static final Logger LOGGER = Logger.getLogger(SensorDataReceiverService.class);
 
-	static {
-		ContextFactory factory = ContextFactory.getInstance();
-		Context context = factory.getContext(Type.LOCATION, "Origin");
-		processor.addContext(context);
-	}
+	// private static CEPProcessor processor = CEPProcessor.getProcessor();
+
+	// static {
+	// ContextFactory factory = ContextFactory.getInstance();
+	// Context context = factory.getContext(Type.LOCATION, "Origin");
+	// processor.addContext(context);
+	// }
 
 	@POST
 	@Path("/save")
@@ -47,13 +48,14 @@ public class SensorDataReceiverService {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response save(SensorResponse res) {
 		// Handle the response
-		Iterable<Person> friends = handleSensorResponse(res);
+		String[] friends = handleSensorResponse(res);
+
 		Response response = Response.status(201).entity(friends).build();
 		// Return a successful response
 		return response;
 	}
 
-	private Iterable<Person> handleSensorResponse(SensorResponse response) {
+	private String[] handleSensorResponse(SensorResponse response) {
 		// LocationEvent event = new LocationEvent();
 		// event.setUserID(response.getUserID());
 		// event.setDeviceID(response.getDeviceID());
@@ -68,7 +70,7 @@ public class SensorDataReceiverService {
 				long geoFence = LocationGrid.toGridNumber(latitude, longitude);
 
 				Location location = saveLocation(latitude, longitude, geoFence);
-				Iterable<Person> friends = bind(userId, location);
+				String[] friends = bind(userId, geoFence);
 
 				return friends;
 			// event.setLatitude(latitude);
@@ -86,8 +88,7 @@ public class SensorDataReceiverService {
 				addFriend(userId, numbers);
 			}
 		}
-		return new ArrayList<>();
-		// System.out.println("@" + event);
+		return new String[0];
 		// processor.addEvent(event);
 	}
 
@@ -107,26 +108,36 @@ public class SensorDataReceiverService {
 		return location;
 	}
 
-	private Iterable<Person> bind(String userId, Location location) {
-		PersonService service = new PersonService();
-		Person person = service.find(userId);
-		if (person != null) {
+	private String[] bind(String userId, long geoFence) {
+		LocationService locationService = new LocationService();
+		PersonService personService = new PersonService();
+
+		Location location = locationService.findUsingGeoFence(geoFence);
+		Person person = personService.find(userId);
+		if (person != null && location != null) {
+			LOGGER.info("Current location of person " + person.getName() + " is " + location.getId());
 			person.setCurrentLocation(location);
 		}
-		Iterable<Person> friends = service.nearByFriends(userId);
-		return friends;
+		personService.createOrUpdate(person);
+
+		Iterable<Person> friends = personService.nearByFriends(userId);
+		List<String> phoneNumbers = new ArrayList<>();
+		friends.forEach(x -> phoneNumbers.add(x.getPhoneNumber()));
+		return phoneNumbers.toArray(new String[0]);
 	}
 
 	private void addFriend(String userId, String[] numbers) {
 		PersonService service = new PersonService();
 		Person person = service.find(userId);
 		if (person != null) {
+			LOGGER.info("Person: " + person.getName());
 			// Add all friends to the person
 			for (String number : numbers) {
 				try {
 					String friendId = Utility.formatPhoneNumber(number);
 					Person friend = service.find(friendId);
 					if (friend != null) {
+						LOGGER.info("Friend: " + friend.getName());
 						person.getFriends().add(friend);
 					}
 				} catch (NumberParseException e) {

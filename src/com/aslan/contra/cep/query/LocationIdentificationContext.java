@@ -96,7 +96,8 @@ public class LocationIdentificationContext extends Context {
 
 				// excutePost("http://contra.projects.mrt.ac.lk:3000/app/push/users/55e5528932b6b37322dc654f/has/devices/all",
 				// status);
-				//excutePost("http://contra.projects.mrt.ac.lk:3000/app/push/devices/all", status);
+				// excutePost("http://contra.projects.mrt.ac.lk:3000/app/push/devices/all",
+				// status);
 			}
 		});
 	}

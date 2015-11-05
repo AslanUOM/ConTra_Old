@@ -35,10 +35,18 @@ public class PersonService extends GenericService<Person> {
 		return person;
 	}
 
+	/**
+	 * Retrieve the friends of the given person if they are in the same
+	 * location.
+	 * 
+	 * @param phoneNumber
+	 *            the formatted phone number of the person.
+	 * @return a list of friends available in that location.
+	 */
 	public Iterable<Person> nearByFriends(String phoneNumber) {
 		Map<String, String> parameters = new HashMap<>();
 		parameters.put("phone_number", phoneNumber);
-		String cypher = "MATCH (person:Person)-[:CURRENT_LOCATION]->(location)<-[:CURRENT_LOCATION]-(people)<-[:FRIEND]-(friends) WHERE person.phoneNumber = {phone_number} RETURN friends";
+		String cypher = "MATCH (person:Person)-[:CURRENT_LOCATION]->(location)<-[:CURRENT_LOCATION]-(friends)<-[:FRIEND]-(person) WHERE person.phoneNumber = {phone_number} RETURN friends";
 		Iterable<Person> friends = session.query(getEntityType(), cypher, parameters);
 		return friends;
 	}

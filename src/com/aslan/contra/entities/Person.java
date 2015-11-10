@@ -84,14 +84,6 @@ public class Person extends Entity {
 		this.work = work;
 	}
 
-	public Set<Device> getDevice() {
-		return devices;
-	}
-
-	public void setDevice(Set<Device> devices) {
-		this.devices = devices;
-	}
-
 	public Set<Person> getFriends() {
 		return friends;
 	}
@@ -147,5 +139,10 @@ public class Person extends Entity {
 		} else if (!phoneNumber.equals(other.phoneNumber))
 			return false;
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		return this.name + " : " + phoneNumber;
 	}
 }

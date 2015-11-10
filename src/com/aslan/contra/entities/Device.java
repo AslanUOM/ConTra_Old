@@ -68,4 +68,9 @@ public class Device extends Entity {
 		this.serial = serial;
 	}
 
+	@Override
+	public String toString() {
+		return name + " - " + serial;
+	}
+
 }

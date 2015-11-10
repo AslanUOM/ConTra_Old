@@ -1,5 +1,6 @@
 package com.aslan.contra.services;
 
+import java.net.HttpURLConnection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -66,6 +67,10 @@ public class UserManagementService {
 			@FormParam("deviceName") String deviceName, @FormParam("deviceSerial") String deviceSerial,
 			@FormParam("deviceToken") String deviceToken) {
 
+		if (country == null)
+
+			LOGGER.info("User registration request: " + phone);
+
 		// Utility.formatPhoneNumber countryCode must be in upper case
 		country = country.toUpperCase();
 
@@ -102,11 +107,12 @@ public class UserManagementService {
 				device.setActive(true);
 				device.setLastSeen(new Date());
 
-				person.getDevice().add(device);
+				person.getDevices().add(device);
 
 				// Save the person
 				personService.createOrUpdate(person);
 
+				LOGGER.info("New person is created: " + person);
 				// Return the formattedPhoneNumber for the reference of the
 				// device
 				response = Response.status(201).entity(formattedPhoneNumber).build();
@@ -125,7 +131,7 @@ public class UserManagementService {
 					device.setLastSeen(new Date());
 
 					// Add the device
-					person.getDevice().add(device);
+					person.getDevices().add(device);
 					// Update the person
 					personService.createOrUpdate(person);
 				} else {
@@ -138,10 +144,12 @@ public class UserManagementService {
 					// Update the device
 					deviceService.createOrUpdate(device);
 				}
-
-				response = Response.status(201).entity(formattedPhoneNumber).build();
+				LOGGER.info("Device is created/updated: " + device);
+				response = Response.status(HttpURLConnection.HTTP_CREATED).entity(formattedPhoneNumber).build();
 			}
 
+		} else {
+			LOGGER.error("Inavlid phone number: " + phone);
 		}
 		return response;
 	}
@@ -165,6 +173,11 @@ public class UserManagementService {
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public Response updateProfile(@FormParam("userId") String userId, @FormParam("name") String name,
 			@FormParam("email") String email) {
+		// Check for null parameters
+		if (userId == null) {
+			LOGGER.warn("Profile update received without userID.");
+			return Response.status(404).entity("Required paramter is missing: userID").build();
+		}
 
 		// Start with a default Response
 		Response response = Response.status(500).entity("Unknown error.").build();
@@ -173,13 +186,23 @@ public class UserManagementService {
 		Person person = personService.find(userId);
 
 		if (person != null) {
-			person.setName(name);
-			person.setEmail(email);
+			// Once registered, they cannot remove the name
+			if (name != null) {
+				person.setName(name);
+			}
+			// Once registered, they cannot remove the email
+			if (email != null) {
+				person.setEmail(email);
+			}
 			// Save the person
 			personService.createOrUpdate(person);
-			response = Response.status(201).entity("Profile is updated successfully").build();
+
+			LOGGER.info("Person object: " + person.getId() + " is updated.");
+			response = Response.status(HttpURLConnection.HTTP_OK).entity("Profile is updated successfully").build();
 		} else {
-			response = Response.status(406).entity("Invalid user id").build();
+			LOGGER.warn("Person object not found for the given userID: " + userId);
+
+			response = Response.status(HttpURLConnection.HTTP_BAD_REQUEST).entity("Invalid user id").build();
 		}
 
 		return response;
@@ -198,21 +221,35 @@ public class UserManagementService {
 	@Path("/profile/{userId}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getProfile(@PathParam("userId") String userId) {
+		// Check for null parameters
+		if (userId == null) {
+			LOGGER.debug("Profile request received without userID.");
+			return Response.status(HttpURLConnection.HTTP_BAD_REQUEST).entity("Required paramter is missing: userID")
+					.build();
+		}
 		// Create an empty Map
 		Map<String, String> result = new HashMap<>();
-
-		// Retrieve the person
-		PersonService personService = new PersonService();
-		Person person = personService.find(userId);
 		Response response;
-		// Create the response
-		if (person != null) {
-			result.put("name", person.getName());
-			result.put("email", person.getEmail());
-			response = Response.status(201).entity(result).build();
-		} else {
-			response = Response.status(404).entity(result).build();
+
+		try {
+			// Retrieve the person
+			PersonService personService = new PersonService();
+			Person person = personService.find(userId);
+			// Create the response
+			if (person != null) {
+				LOGGER.info("Person object is identified for the given userID.");
+				result.put("name", person.getName());
+				result.put("email", person.getEmail());
+				response = Response.status(HttpURLConnection.HTTP_OK).entity(result).build();
+			} else {
+				LOGGER.warn("Person object not found for the given userID: " + userId);
+				response = Response.status(HttpURLConnection.HTTP_NOT_FOUND).entity(result).build();
+			}
+		} catch (Exception ex) {
+			LOGGER.error(ex.getMessage(), ex);
+			response = Response.status(HttpURLConnection.HTTP_INTERNAL_ERROR).entity(result).build();
 		}
+
 		return response;
 	}
 }

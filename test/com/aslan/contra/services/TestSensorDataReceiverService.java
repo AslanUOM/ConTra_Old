@@ -25,6 +25,11 @@ import com.aslan.contra.util.Constants;
 public class TestSensorDataReceiverService {
 
 	@Test
+	public void registerPerson() {
+
+	}
+
+	@Test
 	public void sendContacts() {
 		SensorResponse sensorResponse = new SensorResponse();
 		sensorResponse.setDeviceID("bc28793448172e9c");
@@ -53,7 +58,7 @@ public class TestSensorDataReceiverService {
 
 			SensorData data = new SensorData();
 			data.setType(Constants.Type.LOCATION);
-			data.setData(new String[] { "6.9321335", "79.8507096" });
+			data.setData(new String[] { "6.8321335", "79.7507096" });
 
 			sensorResponse.addSensorData(data);
 

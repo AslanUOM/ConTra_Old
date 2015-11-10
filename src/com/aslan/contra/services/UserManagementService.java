@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -16,6 +17,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.log4j.Logger;
+import org.hibernate.validator.constraints.Email;
 
 import com.aslan.contra.db.DeviceService;
 import com.aslan.contra.db.PersonService;
@@ -63,9 +65,10 @@ public class UserManagementService {
 	@Path("/register")
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public Response registerUser(@FormParam("country") String country, @FormParam("phone") String phone,
-			@FormParam("deviceName") String deviceName, @FormParam("deviceSerial") String deviceSerial,
-			@FormParam("deviceToken") String deviceToken) {
+	public Response registerUser(@NotNull @FormParam("country") String country,
+			@NotNull @FormParam("phone") String phone, @FormParam("deviceName") String deviceName,
+			@NotNull @FormParam("deviceSerial") String deviceSerial,
+			@NotNull @FormParam("deviceToken") String deviceToken) {
 
 		if (country == null)
 
@@ -171,8 +174,8 @@ public class UserManagementService {
 	@Path("/updateprofile")
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public Response updateProfile(@FormParam("userId") String userId, @FormParam("name") String name,
-			@FormParam("email") String email) {
+	public Response updateProfile(@NotNull @FormParam("userId") String userId, @NotNull @FormParam("name") String name,
+			@NotNull @Email @FormParam("email") String email) {
 		// Check for null parameters
 		if (userId == null) {
 			LOGGER.warn("Profile update received without userID.");

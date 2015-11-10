@@ -4,7 +4,14 @@
 	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
 	version="3.1">
 	<display-name>ConTra</display-name>
-
+	
+	<context-param>
+	    <param-name>
+	        javax.faces.INTERPRET_EMPTY_STRING_SUBMITTED_VALUES_AS_NULL
+	    </param-name>
+	    <param-value>true</param-value>
+	</context-param>
+    
 	<!-- Define ServletContainer of Jersey -->
 	<servlet>
 		<servlet-name>JerseyContainer</servlet-name>
@@ -14,6 +21,10 @@
 			<param-name>javax.ws.rs.Application</param-name>
 			<param-value>com.aslan.contra.config.WebServiceConfiguration</param-value>
 		</init-param>
+		<init-param>
+            <param-name>jersey.config.beanValidation.enableOutputValidationErrorEntity.server</param-name>
+            <param-value>true</param-value>
+        </init-param>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 

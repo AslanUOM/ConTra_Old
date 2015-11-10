@@ -87,7 +87,7 @@ public class PersonService extends GenericService<Person> {
 		Map<String, String> parameters = new HashMap<>();
 		parameters.put("person_phone_number", person.getPhoneNumber());
 		parameters.put("friend_phone_number", with.getPhoneNumber());
-		String cypher = "MATCH (person:Person {phoneNumber:{person_phone_number})-[r:FRIEND]->(friend:Person {phoneNumber:{friend_phone_number}) RETURN r";
+		String cypher = "MATCH (person:Person {phoneNumber:{person_phone_number}})-[r:FRIEND]->(friend:Person {phoneNumber:{friend_phone_number}}) RETURN r";
 		Result result = session.query(cypher, parameters);
 		boolean hasFriendship = result.iterator().hasNext();
 		return hasFriendship;
@@ -104,7 +104,7 @@ public class PersonService extends GenericService<Person> {
 		Map<String, String> parameters = new HashMap<>();
 		parameters.put("phone_number", phoneNumber);
 		// TODO: This query can be enhanced to check the active devices only
-		String cypher = "MATCH (person:Person {phoneNumber:{person_phone_number})-[:OWNS]->(device:Device) RETURN device.token";
+		String cypher = "MATCH (person:Person {phoneNumber:{person_phone_number}})-[:OWNS]->(device:Device) RETURN device.token";
 		Iterable<String> tokens = session.query(String.class, cypher, parameters);
 		return tokens;
 	}

@@ -5,8 +5,10 @@ import java.util.Map;
 
 import org.neo4j.ogm.session.result.Result;
 
+import com.aslan.contra.entities.Home;
 import com.aslan.contra.entities.Location;
 import com.aslan.contra.entities.Person;
+import com.aslan.contra.entities.Work;
 
 public class PersonService extends GenericService<Person> {
 
@@ -104,8 +106,26 @@ public class PersonService extends GenericService<Person> {
 		Map<String, String> parameters = new HashMap<>();
 		parameters.put("phone_number", phoneNumber);
 		// TODO: This query can be enhanced to check the active devices only
-		String cypher = "MATCH (person:Person {phoneNumber:{person_phone_number}})-[:OWNS]->(device:Device) RETURN device.token";
+		String cypher = "MATCH (person:Person {phoneNumber:{phone_number}})-[:OWNS]->(device:Device) RETURN device.token";
 		Iterable<String> tokens = session.query(String.class, cypher, parameters);
 		return tokens;
+	}
+	
+	public Home home(String phoneNumber) {
+		Map<String, String> parameters = new HashMap<>();
+		parameters.put("phone_number", phoneNumber);
+		// TODO: This query can be enhanced to check the active devices only
+		String cypher = "MATCH (person:Person {phoneNumber:{phone_number}})-[home:LIVES_IN]->(location:Location) RETURN home";
+		Home home = session.queryForObject(Home.class, cypher, parameters);
+		return home;
+	}
+	
+	public Work work(String phoneNumber) {
+		Map<String, String> parameters = new HashMap<>();
+		parameters.put("phone_number", phoneNumber);
+		// TODO: This query can be enhanced to check the active devices only
+		String cypher = "MATCH (person:Person {phoneNumber:{phone_number}})-[work:WORKS_IN]->(location:Location) RETURN work";
+		Work work = session.queryForObject(Work.class, cypher, parameters);
+		return work;
 	}
 }

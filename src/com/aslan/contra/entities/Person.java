@@ -25,7 +25,7 @@ public class Person extends Entity {
 	/**
 	 * Home location.
 	 */
-	@Relationship(type = "LIVES_IN")
+	@Relationship(type = "LIVES_IN", direction = Relationship.OUTGOING)
 	private Home home;
 
 	/**

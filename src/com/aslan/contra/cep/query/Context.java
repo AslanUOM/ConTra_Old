@@ -5,9 +5,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.aslan.contra.cep.CEPProcessor;
-import com.aslan.contra.model.LocationEvent;
-import com.aslan.contra.model.SensorData;
-import com.aslan.contra.model.SensorResponse;
+import com.aslan.contra.cep.event.LocationEvent;
+import com.aslan.contra.cep.event.SensorData;
+import com.aslan.contra.cep.event.SensorResponse;
 import com.aslan.contra.util.Constants;
 import com.aslan.contra.util.LocationGrid;
 

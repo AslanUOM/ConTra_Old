@@ -1,4 +1,4 @@
-package com.aslan.contra.model;
+package com.aslan.contra.cep.event;
 
 /**
  * This class is the abstract super class of all Events which is used to feed

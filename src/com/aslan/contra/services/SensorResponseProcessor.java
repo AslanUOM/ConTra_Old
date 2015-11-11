@@ -6,14 +6,18 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import com.aslan.contra.cep.CEPProcessor;
+import com.aslan.contra.cep.event.LocationEvent;
+import com.aslan.contra.cep.event.SensorData;
+import com.aslan.contra.cep.event.SensorResponse;
+import com.aslan.contra.cep.query.Context;
+import com.aslan.contra.cep.query.ContextFactory;
 import com.aslan.contra.db.DeviceService;
 import com.aslan.contra.db.LocationService;
 import com.aslan.contra.db.PersonService;
 import com.aslan.contra.entities.Device;
 import com.aslan.contra.entities.Location;
 import com.aslan.contra.entities.Person;
-import com.aslan.contra.model.SensorData;
-import com.aslan.contra.model.SensorResponse;
 import com.aslan.contra.util.Constants.Type;
 import com.aslan.contra.util.GCMNotification;
 import com.aslan.contra.util.LocationGrid;
@@ -57,6 +61,18 @@ public class SensorResponseProcessor {
 	 * LocationService to perform Location related database operations.
 	 */
 	private final LocationService locationService;
+
+	/**
+	 * CEP Processor.
+	 */
+	// TODO: Refactor this code.
+	private static CEPProcessor processor = CEPProcessor.getProcessor();
+
+	static {
+		ContextFactory factory = ContextFactory.getInstance();
+		Context context = factory.getContext(Context.Type.LOCATION, "Origin");
+		processor.addContext(context);
+	}
 
 	/**
 	 * Construct a SensorResponseProcessor for the given SensorResponse.
@@ -143,6 +159,18 @@ public class SensorResponseProcessor {
 			GCMNotification notification = new GCMNotification(phoneNumbers.toString(), allDeviceTokens);
 			notification.executeHTTPSConnectionBuilder();
 		}
+
+		// Create the event
+		LocationEvent event = new LocationEvent();
+		event.setUserID(userId);
+		event.setGeoFence(geoFence);
+		event.setTime(data.getTime());
+		// Add the location to CEP
+		new Thread() {
+			public void run() {
+				processor.addEvent(event);
+			}
+		}.start();
 	}
 
 	private void processContacts(SensorData data) {

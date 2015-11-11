@@ -1,4 +1,4 @@
-package com.aslan.contra.model;
+package com.aslan.contra.cep.event;
 
 import java.io.Serializable;
 import java.util.ArrayList;

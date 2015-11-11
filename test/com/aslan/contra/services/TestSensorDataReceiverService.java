@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.Calendar;
 import java.util.List;
 
 import javax.ws.rs.client.Client;
@@ -17,8 +18,8 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import com.aslan.contra.model.SensorData;
-import com.aslan.contra.model.SensorResponse;
+import com.aslan.contra.cep.event.SensorData;
+import com.aslan.contra.cep.event.SensorResponse;
 import com.aslan.contra.util.Constants;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -56,9 +57,13 @@ public class TestSensorDataReceiverService {
 			//sensorResponse.setDeviceID("bc28793448172e9c");
 			sensorResponse.setUserID("+94770780210");
 
+			Calendar calendar = Calendar.getInstance();
+			calendar.set(2015, 10, 10, 7, 0, 0);
+			
 			SensorData data = new SensorData();
 			data.setType(Constants.Type.LOCATION);
 			data.setData(new String[] { "6.8321335", "79.7507096" });
+			data.setTime(calendar.getTimeInMillis());
 
 			sensorResponse.addSensorData(data);
 

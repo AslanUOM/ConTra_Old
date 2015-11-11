@@ -2,10 +2,10 @@ package com.aslan.contra.cep;
 
 import org.apache.log4j.Logger;
 
+import com.aslan.contra.cep.event.Event;
+import com.aslan.contra.cep.event.LocationEvent;
 import com.aslan.contra.cep.query.Context;
 import com.aslan.contra.cep.query.OnUpdateListener;
-import com.aslan.contra.model.Event;
-import com.aslan.contra.model.LocationEvent;
 import com.espertech.esper.client.Configuration;
 import com.espertech.esper.client.EPAdministrator;
 import com.espertech.esper.client.EPRuntime;
@@ -106,6 +106,8 @@ class EsperProcessor extends CEPProcessor {
             final String query = context.getQuery(i);
             final OnUpdateListener listener = context.getOnUpdateListener(i);
 
+            LOGGER.error("Context: " + context);
+            
             EPStatement statement = ADMIN.createEPL(query);
             if (listener != OnUpdateListener.NULL_OBJECT) {
                 statement.addListener(new UpdateListener() {
@@ -125,11 +127,7 @@ class EsperProcessor extends CEPProcessor {
                     @Override
                     public void update(EventBean[] newEvents,
                             EventBean[] oldEvents) {
-                        System.out.println("-------------------------------------------");
-                        for (EventBean e : newEvents) {
-                           System.out.println(e);
-                        }
-                        System.out.println("-------------------------------------------");
+                        // Do nothing
                     }
                 });
             }

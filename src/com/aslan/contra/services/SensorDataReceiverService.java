@@ -12,9 +12,9 @@ import javax.ws.rs.core.Response;
 
 import org.apache.log4j.Logger;
 
+import com.aslan.contra.cep.event.SensorResponse;
 import com.aslan.contra.db.PersonService;
 import com.aslan.contra.entities.Person;
-import com.aslan.contra.model.SensorResponse;
 
 /**
  * This service is accessed by sensor plug-in to send the sensed information to

@@ -1,17 +1,17 @@
 package com.aslan.contra.cep.query;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Calendar;
-import java.util.List;
+import java.util.Date;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import com.aslan.contra.db.LocationService;
+import com.aslan.contra.db.PersonService;
+import com.aslan.contra.entities.Home;
+import com.aslan.contra.entities.Location;
+import com.aslan.contra.entities.Person;
+import com.aslan.contra.entities.Work;
 import com.aslan.contra.util.TimeUtility;
 
 public class LocationIdentificationContext extends Context {
@@ -49,8 +49,18 @@ public class LocationIdentificationContext extends Context {
 		String smt1 = String.format(
 				"insert into LocationEvent select * from %s.std:groupwin(userID).win:ext_timed_batch(time, %d hours)",
 				INPUT_STREAM, BATCH_TIME);
+		// String smt2 = String.format(
+		// "select beginevent.userID as userID, beginevent.geoFence as geoFence,
+		// beginevent.time as beginTime, endevent.time as endTime,
+		// beginevent.wifiNetworks as wifiNetworks"
+		// + " from pattern [every (beginevent=LocationEvent ->
+		// middleevent=LocationEvent(geoFence=beginevent.geoFence AND (time -
+		// beginevent.time < %d))"
+		// + " until endevent=LocationEvent(geoFence!=beginevent.geoFence OR
+		// (time - beginevent.time >= %d)))] group by beginevent.userID",
+		// MAX_TIME_INTERVAL, MAX_TIME_INTERVAL);
 		String smt2 = String.format(
-				"select beginevent.userID as userID, beginevent.geoFence as geoFence, beginevent.time as beginTime, endevent.time as endTime, beginevent.wifiNetworks as wifiNetworks"
+				"select beginevent.userID as userID, beginevent.geoFence as geoFence, beginevent.time as beginTime, endevent.time as endTime"
 						+ " from pattern [every (beginevent=LocationEvent -> middleevent=LocationEvent(geoFence=beginevent.geoFence AND (time - beginevent.time < %d))"
 						+ " until endevent=LocationEvent(geoFence!=beginevent.geoFence OR (time - beginevent.time >= %d)))] group by beginevent.userID",
 				MAX_TIME_INTERVAL, MAX_TIME_INTERVAL);
@@ -70,79 +80,150 @@ public class LocationIdentificationContext extends Context {
 				end.setTimeInMillis((Long) properties.get("endTime"));
 
 				// System.out.println(bean.get("wifiNetworks"));
-				@SuppressWarnings("unchecked")
-				List<String> wifiNetworks = (List<String>) properties.get("wifiNetworks");
+				// @SuppressWarnings("unchecked")
+				// List<String> wifiNetworks = (List<String>)
+				// properties.get("wifiNetworks");
 
 				long interval = (end.getTimeInMillis() - start.getTimeInMillis()) / 1000 / 60;
 
-				String status = "NA";
+				LOGGER.info("CEP notification: " + userID + " @ " + geoFence + " Interval: " + interval);
+				// String status = "NA";
 				if (interval >= 5) {
 					if (TimeUtility.isDayTime(start)) {
 						// Work
-						status = "Work";
+						// status = "Work";
+						updateWork(userID, geoFence);
+						LOGGER.info("Work location of " + userID + " is updated.");
+
 					} else {
 						// Home
-						status = "Home";
+						// status = "Home";
+						updateHome(userID, geoFence);
+						LOGGER.info("Home location of " + userID + " is updated.");
 					}
 				}
 				// Print the information
-				LOGGER.info("User ID: " + userID);
-				LOGGER.info("GEO Fence: " + geoFence);
-				LOGGER.info("From: " + start.getTime());
-				LOGGER.info("To: " + end.getTime());
-				LOGGER.info("Interval: " + interval + " mins");
-				LOGGER.info("Status: " + status);
-				LOGGER.info("WIFI: " + wifiNetworks);
-
-				// excutePost("http://contra.projects.mrt.ac.lk:3000/app/push/users/55e5528932b6b37322dc654f/has/devices/all",
-				// status);
-				// excutePost("http://contra.projects.mrt.ac.lk:3000/app/push/devices/all",
-				// status);
+				// LOGGER.info("User ID: " + userID);
+				// LOGGER.info("GEO Fence: " + geoFence);
+				// LOGGER.info("From: " + start.getTime());
+				// LOGGER.info("To: " + end.getTime());
+				// LOGGER.info("Interval: " + interval + " mins");
+				// LOGGER.info("Status: " + status);
+				// LOGGER.info("WIFI: " + wifiNetworks);
 			}
 		});
 	}
 
-	public static String excutePost(String targetURL, String urlParameters) {
-		HttpURLConnection connection = null;
-		try {
-			// Create connection
-			URL url = new URL(targetURL);
-			connection = (HttpURLConnection) url.openConnection();
-			connection.setRequestMethod("POST");
-			connection.setRequestProperty("Content-Type", "application/json");
-			connection.setRequestProperty("Authorization", "c10ef69ca0cda150024b46fe0b9910ff487d16c0");
+	/**
+	 * Add the information to the database.
+	 * 
+	 * @param userId
+	 * @param geoFence
+	 */
+	private void updateHome(String userId, long geoFence) {
+		PersonService personService = new PersonService();
+		LocationService locationService = new LocationService();
 
-			connection.setRequestProperty("Content-Length", Integer.toString(urlParameters.getBytes().length));
-			connection.setRequestProperty("Content-Language", "en-US");
+		Person person = personService.find(userId);
+		Location location = locationService.findUsingGeoFence(geoFence);
 
-			connection.setUseCaches(false);
-			connection.setDoOutput(true);
+		LOGGER.info("Person: " + person);
+		LOGGER.info("Location: " + location);
 
-			// Send request
-			DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
-			wr.writeBytes(String.format("{\"message\":\"Vishnu is @%s\"}", urlParameters));
-			wr.close();
+		if (person != null && location != null) {
+			Home home = personService.home(userId);
 
-			// Get Response
-			InputStream is = connection.getInputStream();
-			BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-			StringBuilder response = new StringBuilder(); // or StringBuffer if
-															// not Java 5+
-			String line;
-			while ((line = rd.readLine()) != null) {
-				System.out.println(line);
-				response.append(line);
-				response.append('\r');
+			if (home == null) {
+				home = new Home();
+				home.setPerson(person);
+				home.setFrom(new Date());
+				home.setLocation(location);
+				home.setConfidence(1);
+
+				person.setHome(home);
+			} else {
+				Location existingLocation = home.getLocation();
+				if (existingLocation.getGeoFence() == geoFence) {
+					// Increase the confidence
+					int confidence = home.getConfidence() + 1;
+					if (confidence > 100) {
+						confidence = 100;
+					}
+
+					home.setConfidence(confidence);
+				} else {
+					// Different home
+					// Reduce the confidence
+					int confidence = home.getConfidence() - 1;
+					if (confidence < 0) {
+						// Already confidence in 0. Update this location
+						home.setPerson(person);
+						home.setLocation(location);
+						home.setConfidence(1);
+						home.setFrom(new Date());
+					} else {
+						home.setConfidence(confidence);
+					}
+				}
 			}
-			rd.close();
-			return response.toString();
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		} finally {
-			if (connection != null) {
-				connection.disconnect();
+
+			personService.createOrUpdate(person);
+		}
+	}
+
+	/**
+	 * Add the information to the database.
+	 * 
+	 * @param userId
+	 * @param geoFence
+	 */
+	private void updateWork(String userId, long geoFence) {
+		PersonService personService = new PersonService();
+		LocationService locationService = new LocationService();
+
+		Person person = personService.find(userId);
+		Location location = locationService.findUsingGeoFence(geoFence);
+
+		LOGGER.info("Person: " + person);
+		LOGGER.info("Location: " + location);
+
+		if (person != null && location != null) {
+			Work work = personService.work(userId);
+
+			if (work == null) {
+				work = new Work();
+				work.setPerson(person);
+				work.setFrom(new Date());
+				work.setLocation(location);
+				work.setConfidence(1);
+
+				person.setWork(work);
+			} else {
+				Location existingLocation = work.getLocation();
+				if (existingLocation.getGeoFence() == geoFence) {
+					// Increase the confidence
+					int confidence = work.getConfidence() + 1;
+					if (confidence > 100) {
+						confidence = 100;
+					}
+
+					work.setConfidence(confidence);
+				} else {
+					// Different work location
+					// Reduce the confidence
+					int confidence = work.getConfidence() - 1;
+					if (confidence < 0) {
+						// Already confidence in 0. Update this location
+						work.setLocation(location);
+						work.setConfidence(1);
+						work.setFrom(new Date());
+					} else {
+						work.setConfidence(confidence);
+					}
+				}
 			}
+
+			personService.createOrUpdate(person);
 		}
 	}
 

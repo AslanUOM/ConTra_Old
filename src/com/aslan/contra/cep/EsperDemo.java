@@ -4,7 +4,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import com.aslan.contra.model.LocationEvent;
+import com.aslan.contra.cep.event.LocationEvent;
 import com.aslan.contra.util.LocationGrid;
 import com.espertech.esper.client.Configuration;
 import com.espertech.esper.client.EPAdministrator;

@@ -8,7 +8,7 @@ import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.annotation.StartNode;
 
 @RelationshipEntity(type = "WORKS_IN")
-public class Work {
+public class Work extends Entity {
 	@StartNode
 	private Person person;
 
